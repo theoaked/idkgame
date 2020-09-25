@@ -4,6 +4,7 @@ var max_speed = 80
 var acceleration = 500
 const FRICTION = 500
 var stamina = 100
+var mana = 100
 
 var velocity = Vector2.ZERO
 
@@ -11,9 +12,11 @@ onready var animationPlayer = $AnimationPlayer
 onready var animationTree = $AnimationTree
 onready var animationState = animationTree.get("parameters/playback")
 onready var staminaBar = $StaminaBar
+onready var manaBar = $ManaBar
 
 func _physics_process(delta):
 	staminaBar.set_value(stamina)
+	manaBar.set_value(mana)
 	var input_vector = Vector2.ZERO
 	
 	if !Input.is_key_pressed(KEY_SHIFT):
