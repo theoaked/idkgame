@@ -1,12 +1,14 @@
 extends KinematicBody2D
 
 const FRICTION = 500
+const ROLL_SPEED = 1.25
 
 var max_speed = 80
 var acceleration = 500
 var stamina = 100
 var mana = 100
 var velocity = Vector2.ZERO
+var roll_vector = Vector2.LEFT
 
 enum {
 	MOVE,
@@ -25,12 +27,12 @@ onready var manaBar = $ManaBar
 func _ready():
 	animationTree.active = true
 
-func _process(delta):
+func _physics_process(delta):
 	match state:
 		MOVE:
 			move_state(delta)
 		ROLL:
-			pass
+			roll_state(delta)
 		ATTACK:
 			attack_state(delta)
 	
@@ -60,23 +62,42 @@ func move_state(delta):
 		else :
 			max_speed = 80
 			acceleration = 500
+		
+		roll_vector = input_vector
 		animationTree.set("parameters/Idle/blend_position", input_vector)
 		animationTree.set("parameters/Run/blend_position", input_vector)
 		animationTree.set("parameters/Attack/blend_position", input_vector)
+		animationTree.set("parameters/Roll/blend_position", input_vector)
 		animationState.travel("Run")
 		velocity = velocity.move_toward(input_vector * max_speed, acceleration * delta)
 	else:
 		animationState.travel("Idle")
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 		
-	velocity = move_and_slide(velocity)
+	move()
+	
+	if Input.is_action_just_pressed("Roll"):
+		if stamina > 36:
+			stamina -= 35
+			state = ROLL
 	
 	if Input.is_action_just_pressed("attack"):
 		state = ATTACK
+		
+func roll_state(delta):
+	velocity = roll_vector * max_speed * ROLL_SPEED
+	animationState.travel("Roll")
+	move()
 
 func attack_state(delta):
 	animationState.travel("Attack")
+	move()
+	
+func move():
 	velocity = move_and_slide(velocity)
+	
+func roll_animation_finished():
+	state = MOVE
 	
 func attack_animation_finish():
 	state = MOVE
